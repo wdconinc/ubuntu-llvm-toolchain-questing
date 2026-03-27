@@ -1,0 +1,12 @@
+spack:
+  specs:
+    - geant4~qt~opengl~motif~vecgeom
+
+  packages:
+    all:
+      compiler: [clang]
+
+  mirrors:
+    buildcache:
+      url: oci://ghcr.io/wdconinc/ubuntu-llvm-toolchain-questing/buildcache
+      signed: false
