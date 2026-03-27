@@ -19,16 +19,16 @@ COPY spack.yaml /opt/spack-environment/spack.yaml
 RUN spack compiler find
 
 RUN --mount=type=secret,id=buildcache_token,required=false \
-    cp /opt/spack-environment/spack.yaml /tmp/spack.yaml.bak \
-    && TOKEN=$(cat /run/secrets/buildcache_token 2>/dev/null || true) \
+    TOKEN=$(cat /run/secrets/buildcache_token 2>/dev/null || true) \
     && if [ -n "$TOKEN" ]; then \
-        spack -e /opt/spack-environment mirror set \
+        spack mirror add \
             --oci-username token \
             --oci-password "$TOKEN" \
-            buildcache; \
+            buildcache \
+            oci://ghcr.io/wdconinc/ubuntu-llvm-toolchain-questing/buildcache; \
     fi \
     && spack -e /opt/spack-environment install \
     && if [ -n "$TOKEN" ]; then \
-        spack -e /opt/spack-environment buildcache push --unsigned --update-index buildcache || true; \
-    fi \
-    && mv /tmp/spack.yaml.bak /opt/spack-environment/spack.yaml
+        spack -e /opt/spack-environment buildcache push --unsigned --update-index buildcache || true \
+        && spack mirror remove buildcache; \
+    fi
