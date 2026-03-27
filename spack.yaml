@@ -1,10 +1,6 @@
 spack:
   specs:
-    - geant4~qt~opengl~motif~vecgeom
-
-  packages:
-    all:
-      compiler: [clang]
+    - geant4~qt~opengl~motif~vecgeom%clang
 
   mirrors:
     buildcache:

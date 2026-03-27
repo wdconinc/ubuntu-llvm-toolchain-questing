@@ -44,6 +44,6 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           secrets: |
-            buildcache_token=${{ secrets.GITHUB_TOKEN }}
+            buildcache_token=${{ github.event_name != 'pull_request' && secrets.GITHUB_TOKEN || '' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

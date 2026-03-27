@@ -18,15 +18,17 @@ COPY spack.yaml /opt/spack-environment/spack.yaml
 
 RUN spack compiler find
 
-RUN --mount=type=secret,id=buildcache_token \
-    spack -e /opt/spack-environment install --no-check-signature \
+RUN --mount=type=secret,id=buildcache_token,required=false \
+    cp /opt/spack-environment/spack.yaml /tmp/spack.yaml.bak \
     && TOKEN=$(cat /run/secrets/buildcache_token 2>/dev/null || true) \
     && if [ -n "$TOKEN" ]; then \
-        cp /opt/spack-environment/spack.yaml /tmp/spack.yaml.bak \
-        ; spack -e /opt/spack-environment mirror set \
+        spack -e /opt/spack-environment mirror set \
             --oci-username token \
             --oci-password "$TOKEN" \
-            buildcache \
-        ; spack -e /opt/spack-environment buildcache push --unsigned --update-index buildcache || true \
-        ; mv /tmp/spack.yaml.bak /opt/spack-environment/spack.yaml; \
-    fi
+            buildcache; \
+    fi \
+    && spack -e /opt/spack-environment install \
+    && if [ -n "$TOKEN" ]; then \
+        spack -e /opt/spack-environment buildcache push --unsigned --update-index buildcache || true; \
+    fi \
+    && mv /tmp/spack.yaml.bak /opt/spack-environment/spack.yaml
