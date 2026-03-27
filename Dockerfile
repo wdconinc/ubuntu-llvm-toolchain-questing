@@ -22,6 +22,7 @@ RUN --mount=type=secret,id=buildcache_token,required=false \
     TOKEN=$(cat /run/secrets/buildcache_token 2>/dev/null || true) \
     && if [ -n "$TOKEN" ]; then \
         spack mirror add \
+            --autopush \
             --oci-username token \
             --oci-password "$TOKEN" \
             buildcache \
@@ -29,6 +30,6 @@ RUN --mount=type=secret,id=buildcache_token,required=false \
     fi \
     && spack -e /opt/spack-environment install \
     && if [ -n "$TOKEN" ]; then \
-        spack -e /opt/spack-environment buildcache push --unsigned --update-index buildcache || true \
+        spack buildcache update-index buildcache || true \
         && spack mirror remove buildcache; \
     fi
