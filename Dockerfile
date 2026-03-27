@@ -20,15 +20,27 @@ RUN spack compiler find
 
 RUN --mount=type=secret,id=buildcache_token,required=false \
     TOKEN=$(cat /run/secrets/buildcache_token 2>/dev/null || true) \
+    && MIRROR_URL=oci://ghcr.io/wdconinc/ubuntu-llvm-toolchain-questing/buildcache \
     && if [ -n "$TOKEN" ]; then \
         spack mirror add \
             --autopush \
             --oci-username token \
             --oci-password "$TOKEN" \
             buildcache \
-            oci://ghcr.io/wdconinc/ubuntu-llvm-toolchain-questing/buildcache; \
+            "$MIRROR_URL"; \
     fi \
     && spack -e /opt/spack-environment install \
+    || { spack mirror remove buildcache 2>/dev/null || true; \
+         spack -e /opt/spack-environment install \
+         && if [ -n "$TOKEN" ]; then \
+             spack mirror add \
+                 --autopush \
+                 --oci-username token \
+                 --oci-password "$TOKEN" \
+                 buildcache \
+                 "$MIRROR_URL" \
+             && spack -e /opt/spack-environment buildcache push buildcache; \
+         fi; } \
     && if [ -n "$TOKEN" ]; then \
         spack buildcache update-index buildcache || true \
         && spack mirror remove buildcache; \
